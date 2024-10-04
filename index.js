@@ -16,17 +16,16 @@ const PORT = process.env.PORT || 3000;
 //     .catch(err => console.error('Connection error', err.stack));
 
 // Define the /data route
+// Option 1: Sending a JSON response
 app.get('/data', async (req, res) => {
     try {
-        // Example query (modify as needed)
-        
-        res.status(200).json({ message: 'Hello from Vercel!' });
-        res.send(`Here is your data: 777`);
+        res.status(200).json({ message: 'Here is your data: 777' });
     } catch (err) {
         console.error('Error executing query', err.stack);
         res.status(500).send('Error fetching data');
     }
 });
+
 
 // Start the server
 // app.listen(PORT, () => {
