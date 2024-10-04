@@ -1,24 +1,20 @@
 require('dotenv').config();
 const express = require('express');
-const { Pool } = require('pg');
+const { Client } = require('pg');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Create a PostgreSQL connection pool using explicit parameters
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASS,
-    port: process.env.DB_PORT,
+// Create a new PostgreSQL client
+const client = new Client({
+    connectionString: process.env.DATABASE_URL,
 });
 
 // Connect to the PostgreSQL database and send a response
 app.get('/data', async (req, res) => {
     try {
-        // Get a client from the pool
-        const client = await pool.connect();
+        // Attempt to connect to the database
+        await client.connect();
         console.log('Connected to PostgreSQL database');
         
         // Send a success message as JSON
@@ -26,9 +22,6 @@ app.get('/data', async (req, res) => {
             message: 'Connected to PostgreSQL database',
             data: '777'  // Your additional data or message
         });
-
-        // Release the client back to the pool
-        client.release();
     } catch (err) {
         console.error('Connection error', err.stack);
         // Send an error message if there is an issue with the database connection
@@ -36,6 +29,9 @@ app.get('/data', async (req, res) => {
             error: 'Error connecting to PostgreSQL database',
             details: err.stack
         });
+    } finally {
+        // Ensure the client is closed after use
+        await client.end();
     }
 });
 
@@ -44,5 +40,10 @@ app.get('/data', async (req, res) => {
 //     console.log(`Server is running on http://localhost:${PORT}`);
 // });
 
-// Export the Express app as a serverless function 
-module.exports = app
+// Export the Express app as a serverless function
+module.exports = app;
+
+console.log('nerb');
+
+//--------
+//  addded to print in doc
