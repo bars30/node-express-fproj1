@@ -28,10 +28,10 @@ app.get('/data', async (req, res) => {
 
 
 // Start the server
-// app.listen(PORT, () => {
-//     console.log(`Server is running on http://localhost:${PORT}`);
-// });
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
 
 
 // Export the Express app as a serverless function
-module.exports = app;
+// module.exports = app;
