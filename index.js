@@ -20,6 +20,7 @@ app.get('/data', async (req, res) => {
     try {
         // Example query (modify as needed)
         
+        res.status(200).json({ message: 'Hello from Vercel!' });
         res.send(`Here is your data: 777`);
     } catch (err) {
         console.error('Error executing query', err.stack);
