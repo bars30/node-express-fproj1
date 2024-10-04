@@ -6,14 +6,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Create a new PostgreSQL client
-const client = new Client({
-    connectionString: process.env.DATABASE_URL,
-});
+// const client = new Client({
+//     connectionString: process.env.DATABASE_URL,
+// });
 
 // Connect to the PostgreSQL database
-client.connect()
-    .then(() => console.log('Connected to PostgreSQL database'))
-    .catch(err => console.error('Connection error', err.stack));
+// client.connect()
+//     .then(() => console.log('Connected to PostgreSQL database'))
+//     .catch(err => console.error('Connection error', err.stack));
 
 // Define the /data route
 app.get('/data', async (req, res) => {
