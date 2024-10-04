@@ -1,13 +1,39 @@
 require('dotenv').config();
 const express = require('express');
+<<<<<<< HEAD
 const { Pool } = require('pg');
+=======
+const { Client } = require('pg');
+>>>>>>> 958d389f8e07a87f03a98b4722f5505adb8f483f
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+<<<<<<< HEAD
 // Create a PostgreSQL connection pool
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
+=======
+// Create a new PostgreSQL client
+const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+});
+
+// Connect to the PostgreSQL database
+client.connect()
+    .then(() => console.log('Connected to PostgreSQL database'))
+    .catch(err => console.error('Connection error', err.stack));
+
+// Define the /data route
+// Option 1: Sending a JSON response
+app.get('/data', async (req, res) => {
+    try {
+        res.status(200).json({ message: 'Here is your data: 777' });
+    } catch (err) {
+        console.error('Error executing query', err.stack);
+        res.status(500).send('Error fetching data');
+    }
+>>>>>>> 958d389f8e07a87f03a98b4722f5505adb8f483f
 });
 
 // Connect to the PostgreSQL database and send a response
@@ -36,9 +62,13 @@ app.get('/data', async (req, res) => {
 });
 
 // Start the server
-// app.listen(PORT, () => {
-//     console.log(`Server is running on http://localhost:${PORT}`);
-// });
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
 
 // Export the Express app as a serverless function
+<<<<<<< HEAD
  module.exports = app
+=======
+// module.exports = app;
+>>>>>>> 958d389f8e07a87f03a98b4722f5505adb8f483f
