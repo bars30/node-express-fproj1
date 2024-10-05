@@ -107,13 +107,13 @@ app.post('/register', async (req, res) => {
     console.log('Checked for existing user');
     res.send('Checked for existing user')
 
-    // if (existingUser.rows.length > 0) {
-    //   console.log('User already exists');
-    //   return res.status(400).json({ error: 'User already exists' });
-    // }
+    if (existingUser.rows.length > 0) {
+      console.log('User already exists');
+      return res.status(400).json({ error: 'User already exists' });
+    }
 
-    // const hashedPassword = await bcrypt.hash(password, 10);
-    // console.log('Password hashed');
+    const hashedPassword = await bcrypt.hash(password, 10);
+    console.log('Password hashed');
 
     // const result = await client.query(
     //   'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id',
