@@ -6,10 +6,11 @@ const { Client } = require('pg');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const cors = require('cors');
 
 // Middleware to parse JSON bodies
 app.use(express.json()); // Only keep this line
-
+app.use(cors());
 // PostgreSQL client setup
 const client = new Client({
   connectionString: process.env.DATABASE_URL,
@@ -227,9 +228,9 @@ function verifyToken(req, res, next) {
 }
 
 // Start server
-// app.listen(PORT, () => {
-//   console.log(`Server running on port ${PORT}`);
-// });
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 
-module.exports = app;
+// module.exports = app;
