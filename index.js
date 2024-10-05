@@ -96,37 +96,38 @@ app.use((req, res, next) => {
 app.post('/register', async (req, res) => {
   const { email, password } = req.body;
   console.log('Received registration request:', { email });
-res.send(req.body)
+  res.send(req.body)
   if (!email || !password) {
     console.log('Email or password missing');
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
-  // try {
-  //   const existingUser = await client.query('SELECT * FROM users WHERE email = $1', [email]);
-  //   console.log('Checked for existing user');
+  try {
+    const existingUser = await client.query('SELECT * FROM users WHERE email = $1', [email]);
+    console.log('Checked for existing user');
+    res.send('Checked for existing user')
 
-  //   if (existingUser.rows.length > 0) {
-  //     console.log('User already exists');
-  //     return res.status(400).json({ error: 'User already exists' });
-  //   }
+    // if (existingUser.rows.length > 0) {
+    //   console.log('User already exists');
+    //   return res.status(400).json({ error: 'User already exists' });
+    // }
 
-  //   const hashedPassword = await bcrypt.hash(password, 10);
-  //   console.log('Password hashed');
+    // const hashedPassword = await bcrypt.hash(password, 10);
+    // console.log('Password hashed');
 
-  //   const result = await client.query(
-  //     'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id',
-  //     [email, hashedPassword]
-  //   );
+    // const result = await client.query(
+    //   'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id',
+    //   [email, hashedPassword]
+    // );
 
-  //   const userId = result.rows[0].id;
-  //   const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // const userId = result.rows[0].id;
+    // const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-  //   res.json({ userId, token });
-  // } catch (err) {
-  //   console.error('Registration error:', err);
-  //   res.status(500).json({ error: 'Registration error', details: err.message });
-  // }
+    // res.json({ userId, token });
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ error: 'Registration error', details: err.message });
+  }
 });
 
 
