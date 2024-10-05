@@ -203,9 +203,11 @@ app.patch('/change-password', verifyToken, async (req, res) => {
   }
 });
 
-app.get('/get', async (req, res) => {
-  res.send(`yeh it's working`)
-})
+app.get('/get', (req, res) => {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Allow all origins (or specify a domain)
+  res.send("yeh it's working");
+});
 
 // JWT verification middleware
 function verifyToken(req, res, next) {
