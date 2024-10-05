@@ -58,77 +58,78 @@ app.use((req, res, next) => {
 // });
 // ----
 // Register endpoint
-// app.post('/register', async (req, res) => {
-//   const { email, password } = req.body;
-
-//   if (!email || !password) {
-//     return res.status(400).json({ error: 'Email and password are required' });
-//   }
-
-//   try {
-//     // Проверка, существует ли пользователь
-//     const existingUser = await client.query('SELECT * FROM users WHERE email = $1', [email]);
-
-//     if (existingUser.rows.length > 0) {
-//       return res.status(400).json({ error: 'User already exists' });
-//     }
-
-//     // Хеширование пароля
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     // Вставка нового пользователя в базу данных
-//     const result = await client.query(
-//       'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id',
-//       [email, hashedPassword]
-//     );
-
-//     const userId = result.rows[0].id;
-
-//     // Генерация JWT-токена
-//     const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-//     // Возвращаем токен вместе с id нового пользователя
-//     res.json({ userId, token });
-//   } catch (err) {
-//     res.status(500).json({ error: 'Registration error', details: err.message });
-//   }
-// });
 app.post('/register', async (req, res) => {
   const { email, password } = req.body;
-  console.log('Received registration request:', { email });
-  res.send(req.body)
+
   if (!email || !password) {
-    console.log('Email or password missing');
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
   try {
+    // Проверка, существует ли пользователь
     const existingUser = await client.query('SELECT * FROM users WHERE email = $1', [email]);
-    console.log('Checked for existing user');
-    res.send('Checked for existing user')
 
     if (existingUser.rows.length > 0) {
-      console.log('User already exists');
       return res.status(400).json({ error: 'User already exists' });
     }
 
+    // Хеширование пароля
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log('Password hashed');
 
+    // Вставка нового пользователя в базу данных
     const result = await client.query(
       'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id',
       [email, hashedPassword]
     );
 
     const userId = result.rows[0].id;
+
+    // Генерация JWT-токена
     const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
+    // Возвращаем токен вместе с id нового пользователя
     res.json({ userId, token });
   } catch (err) {
-    console.error('Registration error:', err);
     res.status(500).json({ error: 'Registration error', details: err.message });
   }
 });
+// noooo
+// app.post('/register', async (req, res) => {
+//   const { email, password } = req.body;
+//   console.log('Received registration request:', { email });
+//   res.send(req.body)
+//   if (!email || !password) {
+//     console.log('Email or password missing');
+//     return res.status(400).json({ error: 'Email and password are required' });
+//   }
+
+//   try {
+//     const existingUser = await client.query('SELECT * FROM users WHERE email = $1', [email]);
+//     console.log('Checked for existing user');
+//     res.send('Checked for existing user')
+
+//     if (existingUser.rows.length > 0) {
+//       console.log('User already exists');
+//       return res.status(400).json({ error: 'User already exists' });
+//     }
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     console.log('Password hashed');
+
+//     const result = await client.query(
+//       'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id',
+//       [email, hashedPassword]
+//     );
+
+//     const userId = result.rows[0].id;
+//     const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+//     res.json({ userId, token });
+//   } catch (err) {
+//     console.error('Registration error:', err);
+//     res.status(500).json({ error: 'Registration error', details: err.message });
+//   }
+// });
 
 
 // Login endpoint
@@ -226,9 +227,9 @@ function verifyToken(req, res, next) {
 }
 
 // Start server
-// app.listen(PORT, () => {
-//   console.log(`Server running on port ${PORT}`);
-// });
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 
-module.exports = app;
+// module.exports = app;
