@@ -115,15 +115,15 @@ app.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log('Password hashed');
 
-    // const result = await client.query(
-    //   'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id',
-    //   [email, hashedPassword]
-    // );
+    const result = await client.query(
+      'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id',
+      [email, hashedPassword]
+    );
 
-    // const userId = result.rows[0].id;
-    // const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const userId = result.rows[0].id;
+    const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    // res.json({ userId, token });
+    res.json({ userId, token });
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ error: 'Registration error', details: err.message });
