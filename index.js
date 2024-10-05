@@ -13,7 +13,7 @@ app.use(express.json()); // Only keep this line
 // PostgreSQL client setup
 const client = new Client({
   connectionString: process.env.DATABASE_URL,
-  connectionTimeoutMillis: 10000
+  connectionTimeoutMillis: 70000
 });
 client.connect(err => {
   if (err) {
