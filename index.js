@@ -228,9 +228,9 @@ function verifyToken(req, res, next) {
 }
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
 
 
-// module.exports = app;
+module.exports = app;
