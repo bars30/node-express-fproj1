@@ -1,49 +1,188 @@
 require('dotenv').config();
 const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { Client } = require('pg');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Create a new PostgreSQL client
+// Middleware to parse JSON bodies
+app.use(express.json()); // Only keep this line
+
+// PostgreSQL client setup
 const client = new Client({
-    connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL,
+});
+client.connect();
+
+// Middleware for logging
+app.use((req, res, next) => {
+  console.log('Headers:', req.headers); // Log request headers
+  console.log('Raw body:', req.body); // Log request body
+  next();
 });
 
-// Connect to the PostgreSQL database and send a response
-app.get('/data', async (req, res) => {
-    try {
-        // Attempt to connect to the database
-        await client.connect();
-        console.log('Connected to PostgreSQL database');
-        
-        // Send a success message as JSON
-        res.status(200).json({
-            message: 'Connected to PostgreSQL database',
-            data: '777'  // Your additional data or message
-        });
-    } catch (err) {
-        console.error('Connection error', err.stack);
-        // Send an error message if there is an issue with the database connection
-        res.status(500).json({
-            error: 'Error connecting to PostgreSQL database',
-            details: err.stack
-        });
-    } finally {
-        // Ensure the client is closed after use
-        await client.end();
+// Register endpoint
+// app.post('/register', async (req, res) => {
+//   const { email, password } = req.body;
+
+//   if (!email || !password) {
+//     return res.status(400).json({ error: 'Email and password are required' });
+//   }
+
+//   try {
+//     const existingUser = await client.query('SELECT * FROM users WHERE email = $1', [email]);
+
+//     if (existingUser.rows.length > 0) {
+//       return res.status(400).json({ error: 'User already exists' });
+//     }
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     const result = await client.query(
+//       'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id',
+//       [email, hashedPassword]
+//     );
+
+//     res.json({ userId: result.rows[0].id });
+//   } catch (err) {
+//     res.status(500).json({ error: 'Registration error', details: err.message });
+//   }
+// });
+// Register endpoint
+app.post('/register', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  try {
+    // Проверка, существует ли пользователь
+    const existingUser = await client.query('SELECT * FROM users WHERE email = $1', [email]);
+
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ error: 'User already exists' });
     }
+
+    // Хеширование пароля
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Вставка нового пользователя в базу данных
+    const result = await client.query(
+      'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id',
+      [email, hashedPassword]
+    );
+
+    const userId = result.rows[0].id;
+
+    // Генерация JWT-токена
+    const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Возвращаем токен вместе с id нового пользователя
+    res.json({ userId, token });
+  } catch (err) {
+    res.status(500).json({ error: 'Registration error', details: err.message });
+  }
 });
 
-// Start the server
+
+// Login endpoint
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const result = await client.query('SELECT * FROM users WHERE email = $1', [email]);
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'User not found' });
+    }
+
+    const user = result.rows[0];
+    const validPassword = await bcrypt.compare(password, user.password);
+
+    if (!validPassword) {
+      return res.status(400).json({ error: 'Invalid password' });
+    }
+
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token });
+  } catch (err) {
+    res.status(500).json({ error: 'Login error', details: err.message });
+  }
+});
+
+// Data endpoint (protected by JWT)
+app.post('/data', verifyToken, (req, res) => {
+  const { input_data } = req.body;
+
+  const result_data = `You entered: ${input_data}`;
+  res.json({ result_data });
+});
+
+
+// Change Password endpoint
+app.patch('/change-password', verifyToken, async (req, res) => {
+  const { email, oldPassword, newPassword } = req.body;
+
+  if (!email || !oldPassword || !newPassword) {
+    return res.status(400).json({ error: 'Email, old password, and new password are required' });
+  }
+
+  try {
+    // Fetch the user's current password from the database
+    const result = await client.query('SELECT * FROM users WHERE email = $1', [email]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = result.rows[0];
+    
+    // Verify the old password
+    const validPassword = await bcrypt.compare(oldPassword, user.password);
+    if (!validPassword) {
+      return res.status(400).json({ error: 'Old password is incorrect' });
+    }
+
+    // Hash the new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the password in the database
+    await client.query('UPDATE users SET password = $1 WHERE id = $2', [hashedNewPassword, user.id]);
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Error changing password', details: err.message });
+  }
+});
+
+
+
+// JWT verification middleware
+function verifyToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+
+  if (!authHeader) {
+    return res.status(403).json({ error: 'No token provided' });
+  }
+
+  const token = authHeader.split(' ')[1]; // Extract the token from 'Bearer <token>'
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    req.userId = decoded.id;
+    next();
+  });
+}
+
+// Start server
 // app.listen(PORT, () => {
-//     console.log(`Server is running on http://localhost:${PORT}`);
+//   console.log(`Server running on port ${PORT}`);
 // });
 
-// Export the Express app as a serverless function
+
 module.exports = app;
-
-console.log('nerb');
-
-//--------
-//  addded to print in doc
