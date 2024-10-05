@@ -164,7 +164,9 @@ app.patch('/change-password', verifyToken, async (req, res) => {
   }
 });
 
-
+app.get('/get', async (req, res) => {
+  res.send(`yeh it's working`)
+})
 
 // JWT verification middleware
 function verifyToken(req, res, next) {
